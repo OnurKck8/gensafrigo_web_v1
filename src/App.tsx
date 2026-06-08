@@ -678,7 +678,7 @@ function ContactSection() {
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-1">MÜŞTERİ HİZMETLERİ</h4>
-                      <p className="text-slate-500 text-sm leading-relaxed">+90 (539) 282 98 32<br/>+90 (532) 499 85 37<br/>Pzt - Cmt: 09:00 - 18:00</p>
+                      <p className="text-slate-500 text-sm leading-relaxed">0850 611 09 93<br/>Pzt - Cmt: 09:00 - 18:00</p>
                     </div>
                   </div>
 
@@ -1142,7 +1142,7 @@ function Footer() {
             <a href="https://www.instagram.com/gensafrigo/" target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center text-brand-400 hover:text-brand-300 hover:bg-slate-900 transition-all border border-slate-800 hover:border-brand-500/40 shadow-sm hover:shadow-[0_0_15px_rgba(38,82,89,0.2)]">
               <Instagram className="w-5 h-5" />
             </a>
-            <a href="https://www.linkedin.com/company/genckale/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center text-brand-400 hover:text-brand-300 hover:bg-slate-900 transition-all border border-slate-800 hover:border-brand-500/40 shadow-sm hover:shadow-[0_0_15px_rgba(38,82,89,0.2)]">
+            <a href="https://www.linkedin.com/company/126554026/admin/dashboard/" target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center text-brand-400 hover:text-brand-300 hover:bg-slate-900 transition-all border border-slate-800 hover:border-brand-500/40 shadow-sm hover:shadow-[0_0_15px_rgba(38,82,89,0.2)]">
               <Linkedin className="w-5 h-5" />
             </a>
             <a href="https://www.youtube.com/@gensafrigo37" target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center text-brand-400 hover:text-brand-300 hover:bg-slate-900 transition-all border border-slate-800 hover:border-brand-500/40 shadow-sm hover:shadow-[0_0_15px_rgba(38,82,89,0.2)]">
@@ -1759,7 +1759,7 @@ function FAQPage() {
               <ArrowRight className="w-4 h-4" />
             </button>
             <a 
-              href="tel:+905324567890" 
+              href="tel:08506110993" 
               className="px-8 py-4 bg-brand-700 text-white rounded-full font-bold uppercase tracking-wider text-sm hover:bg-brand-800 transition-all flex items-center gap-2"
             >
               Hemen Arayın
