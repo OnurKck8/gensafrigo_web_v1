@@ -30,15 +30,27 @@ import {
   Plus,
   Minus,
   Trophy,
-  ChevronDown
+  ChevronDown,
+  Search,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Star
 } from 'lucide-react';
-import { products, categories, Product } from './data';
+import { products, mainCategories, MainCategory, categories, insulationCategories, Product } from './data';
 
-function Header() {
+const GOOGLE_REVIEW_URL = "https://www.google.com/search?q=gensa+frigo&oq=gensa+frigo+&gs_lcrp=EgZjaHJvbWUyCggAEEUYFhgeGDkyBwgBEAAYgAQyBwgCEAAY7wUyBwgDEAAY7wUyCggEEAAYgAQYogQyBggFEEUYPTIGCAYQRRg8MgYIBxBFGDzSAQg0NzE5ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8";
+
+function Header({ searchQuery, onSearch, onSelectProduct }: { searchQuery: string; onSearch: (q: string) => void; onSelectProduct: (id: string) => void }) {
   const [activeSection, setActiveSection] = useState('/');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState(searchQuery);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setHeaderSearch(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     // Scroll to top on initial load of home page if no hash
@@ -91,9 +103,9 @@ function Header() {
     const isActive = isHome ? activeSection === section : location.pathname === section;
 
     if (isActive) {
-      return "text-brand-700 font-extrabold bg-brand-50 px-4 py-2 rounded-full transition-all";
+      return "text-brand-700 font-extrabold bg-brand-50 px-3 xl:px-3.5 py-2 rounded-full transition-all whitespace-nowrap shrink-0";
     }
-    return "text-slate-500 hover:text-brand-600 hover:bg-slate-50 font-medium px-4 py-2 rounded-full transition-all transition-colors";
+    return "text-slate-500 hover:text-brand-600 hover:bg-slate-50 font-medium px-3 xl:px-3.5 py-2 rounded-full transition-colors whitespace-nowrap shrink-0";
   };
 
   const getMobileLinkClass = (section: string) => {
@@ -108,6 +120,14 @@ function Header() {
   };
 
   const navLinkClick = (hash: string) => {
+    if (hash === '#contact' && location.pathname.startsWith('/urun/')) {
+      const currentProductId = decodeURIComponent(location.pathname.replace('/urun/', ''));
+      if (products.some(p => p.id === currentProductId)) {
+        onSelectProduct(currentProductId);
+        navigate(`/${hash}`, { state: { selectedProductId: currentProductId } });
+        return;
+      }
+    }
     if (location.pathname !== '/') {
       navigate(`/${hash}`);
     } else {
@@ -133,10 +153,21 @@ function Header() {
     setTimeout(() => navLinkClick(hash), 100);
   };
 
+  const handleHeaderSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearch(headerSearch);
+    setIsMobileMenuOpen(false);
+    if (location.pathname !== '/') {
+      navigate('/#products');
+    } else {
+      setTimeout(() => navLinkClick('#products'), 50);
+    }
+  };
+
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
+        <div className="flex justify-between items-center py-3.5 gap-3">
           <Link to="/" onClick={(e) => {
             if (location.pathname === '/') {
               e.preventDefault();
@@ -147,13 +178,13 @@ function Header() {
               src="https://www.image2url.com/r2/default/images/1776844880206-6ab47a67-9326-49bb-87dc-410fc271aec1.png" 
               alt="Gensa Frigo - Profesyonel Araç Frigo Soğutucu Sistemleri" 
               title="Gensa Frigo Soğutucu Sistemleri"
-              className="h-9 sm:h-10 w-auto object-contain"
+              className="h-8 xl:h-9 w-auto object-contain"
             />
-            <span className="ml-4 pl-4 border-l border-slate-200 text-[10px] font-extrabold text-slate-400 tracking-[0.2em] uppercase hidden lg:block">
+            <span className="ml-3 pl-3 border-l border-slate-200 text-[10px] font-extrabold text-slate-400 tracking-[0.2em] uppercase hidden 2xl:block whitespace-nowrap">
               Zamanın Ötesinde
             </span>
           </Link>
-          <nav className="hidden md:flex gap-2 text-sm font-medium tracking-wider items-center">
+          <nav className="hidden lg:flex gap-1 text-xs xl:text-sm font-medium tracking-wide items-center">
             <button onClick={() => {
               if (location.pathname === '/') window.scrollTo({ top: 0, behavior: 'smooth' });
               else navigate('/');
@@ -163,15 +194,51 @@ function Header() {
             <Link to="/sikca-sorulan-sorular" className={getLinkClass('/sikca-sorulan-sorular')}>S.S.S</Link>
             <button onClick={() => navLinkClick('#about')} className={getLinkClass('about')}>Hakkımızda</button>
             <button onClick={() => navLinkClick('#contact')} className={getLinkClass('contact')}>İletişim</button>
+            <form onSubmit={handleHeaderSearchSubmit} className="flex items-center ml-1 shrink-0">
+              <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-full focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
+                <input
+                  type="text"
+                  value={headerSearch}
+                  onChange={(e) => {
+                    setHeaderSearch(e.target.value);
+                    onSearch(e.target.value);
+                  }}
+                  placeholder="Ara (ör. balıkçı)..."
+                  aria-label="Üst menüde ürün veya sektör ara"
+                  className="w-28 xl:w-40 pl-3 pr-1.5 py-1.5 bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                />
+                {headerSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHeaderSearch('');
+                      onSearch('');
+                    }}
+                    aria-label="Aramayı temizle"
+                    className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  aria-label="Ara"
+                  className="m-0.5 px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-full text-[11px] font-bold flex items-center gap-1 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Search className="w-3 h-3" />
+                  <span className="hidden xl:inline">Ara</span>
+                </button>
+              </div>
+            </form>
           </nav>
-          <div className="flex items-center gap-3">
-             <Link to="/bayi-girisi" className="hidden md:flex px-4 py-2 border-2 border-brand-950 text-brand-950 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-brand-50 transition-all items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+             <Link to="/bayi-girisi" className="hidden lg:flex px-3.5 py-2 border-2 border-brand-950 text-brand-950 rounded-full text-[11px] font-bold uppercase tracking-wider hover:bg-brand-50 transition-all items-center gap-2 whitespace-nowrap shrink-0">
                 BAYİ GİRİŞİ
              </Link>
-             <button onClick={() => navLinkClick('#contact')} className="hidden md:block px-5 py-2 bg-brand-950 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-brand-600 transition-all border-2 border-brand-950">
+             <button onClick={() => navLinkClick('#contact')} className="hidden lg:block px-4 py-2 bg-brand-950 text-white rounded-full text-[11px] font-bold uppercase tracking-wider hover:bg-brand-600 transition-all border-2 border-brand-950 whitespace-nowrap shrink-0">
                 TEKLİF AL
              </button>
-             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none">
+             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Menüyü aç" className="lg:hidden p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none">
                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                   {isMobileMenuOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -191,7 +258,7 @@ function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-slate-200 bg-white"
+            className="lg:hidden border-t border-slate-200 bg-white"
           >
             <div className="px-4 py-6 space-y-4 flex flex-col items-center">
               <button 
@@ -219,6 +286,28 @@ function Header() {
               </button>
               <button onClick={() => navLinkClickMobile('#about')} className={getMobileLinkClass('about')}>Hakkımızda</button>
               <button onClick={() => navLinkClickMobile('#contact')} className={getMobileLinkClass('contact')}>İletişim</button>
+              <form onSubmit={handleHeaderSearchSubmit} className="w-full flex items-center gap-2 pt-1">
+                <div className="relative flex-grow">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={headerSearch}
+                    onChange={(e) => {
+                      setHeaderSearch(e.target.value);
+                      onSearch(e.target.value);
+                    }}
+                    placeholder="Ara (ör. balıkçı, paslanmaz)..."
+                    aria-label="Mobilde ürün veya sektör ara"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shrink-0"
+                >
+                  Ara
+                </button>
+              </form>
               <div className="w-full h-px bg-slate-100 my-4"></div>
               <Link to="/bayi-girisi" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-3 border-2 border-brand-950 text-brand-950 rounded-xl text-sm font-bold uppercase tracking-wider text-center hover:bg-brand-50 active:bg-brand-100 transition-colors">
                 BAYİ GİRİŞİ
@@ -325,7 +414,7 @@ function TrustSection() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-around gap-6 sm:gap-2"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap lg:flex-nowrap items-center justify-around gap-6 lg:gap-4"
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-brand-600">
@@ -336,7 +425,7 @@ function TrustSection() {
             <div className="text-[10px] text-slate-400 uppercase tracking-widest">DÜŞÜK TÜKETİM</div>
           </div>
         </div>
-        <div className="hidden sm:block h-8 w-px bg-slate-100"></div>
+        <div className="hidden lg:block h-8 w-px bg-slate-100"></div>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-brand-600">
             <Settings className="w-5 h-5" />
@@ -346,7 +435,7 @@ function TrustSection() {
             <div className="text-[10px] text-slate-400 uppercase tracking-widest">TÜM ARAÇ TİPLERİNE</div>
           </div>
         </div>
-        <div className="hidden sm:block h-8 w-px bg-slate-100"></div>
+        <div className="hidden lg:block h-8 w-px bg-slate-100"></div>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-brand-600">
             <ShieldCheck className="w-5 h-5" />
@@ -356,6 +445,34 @@ function TrustSection() {
             <div className="text-[10px] text-slate-400 uppercase tracking-widest">12 AY GARANTİ</div>
           </div>
         </div>
+        <div className="hidden lg:block h-8 w-px bg-slate-100"></div>
+        <a
+          href={GOOGLE_REVIEW_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/80 transition-all group whitespace-nowrap shrink-0"
+          aria-label="Google'da Yıldız Ver ve Yorum Yap"
+        >
+          <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xs shrink-0">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z" />
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z" />
+              <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z" />
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-0.5 mb-0.5" aria-hidden="true">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <div className="text-xs font-bold text-slate-900 group-hover:text-brand-700 transition-colors flex items-center gap-1">
+              <span>Google'da Yıldız Ver</span>
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </a>
       </motion.div>
     </section>
   );
@@ -380,8 +497,8 @@ function ProductWizard({ onSelectProduct }: { onSelectProduct: (p: Product) => v
        recommendedProduct = products.find(p => p.id === 'gns2-e') || products[0];
        recommendedModelText = "GNS2-E";
      } else if (volume === 'v2') {
-       recommendedProduct = products.find(p => p.id === 'gns3-series') || products[0];
-       recommendedModelText = temp === 't2' ? "GNS3D-E" : "GNS3-E";
+       recommendedProduct = products.find(p => p.id === 'gns2-e') || products[0];
+       recommendedModelText = "GNS2-E";
      } else if (volume === 'v3') {
        recommendedProduct = products.find(p => p.id === 'gns4-series') || products[0];
        recommendedModelText = temp === 't2' ? "GNS4D-E" : "GNS4-E";
@@ -601,8 +718,21 @@ function ProductWizard({ onSelectProduct }: { onSelectProduct: (p: Product) => v
   );
 }
 
-function ContactSection() {
+function ContactSection({ selectedProductId, onSelectedProductChange }: { selectedProductId: string; onSelectedProductChange: (id: string) => void }) {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [selectedProduct, setSelectedProduct] = useState(selectedProductId || '');
+  const location = useLocation();
+
+  useEffect(() => {
+    const stateProductId = (location.state as { selectedProductId?: string } | null)?.selectedProductId;
+    const params = new URLSearchParams(location.search);
+    const queryProductId = params.get('urun');
+    const incomingId = stateProductId || queryProductId || selectedProductId;
+
+    if (incomingId) {
+      setSelectedProduct(incomingId);
+    }
+  }, [location.state, location.search, selectedProductId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -610,12 +740,14 @@ function ContactSection() {
     
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const matchedProduct = products.find(p => p.id === selectedProduct);
     
     const data = {
       name: formData.get('name'),
       surname: formData.get('surname'),
       email: formData.get('email'),
       phone: formData.get('phone'),
+      product: matchedProduct ? matchedProduct.model : (selectedProduct || 'Belirtilmedi'),
       message: formData.get('message')
     };
 
@@ -632,6 +764,8 @@ function ContactSection() {
       if (response.ok) {
         setStatus('success');
         form.reset();
+        setSelectedProduct('');
+        onSelectedProductChange('');
         setTimeout(() => setStatus('idle'), 10000);
       } else {
         setStatus('error');
@@ -715,6 +849,38 @@ function ContactSection() {
                   Tam Adrese Yol Tarifi Al
                 </a>
               </div>
+
+              <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5 text-amber-400" aria-hidden="true">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <span className="text-xs font-bold text-slate-500">Google Müşteri Yorumları</span>
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900">Hizmetimizden Memnun Kaldınız mı?</h4>
+                  <p className="text-xs sm:text-sm text-slate-500">Google profilimize giderek tek tıkla puan verebilir ve görüşlerinizi paylaşabilirsiniz.</p>
+                </div>
+                <a
+                  href={GOOGLE_REVIEW_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2.5 px-5 py-3.5 bg-brand-950 hover:bg-brand-600 text-white rounded-xl text-sm font-bold shadow-sm transition-all whitespace-nowrap shrink-0 group"
+                >
+                  <span className="w-6 h-6 bg-white rounded-full flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z" />
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z" />
+                      <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z" />
+                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z" />
+                    </svg>
+                  </span>
+                  <span>Google'da Yıldız &amp; Yorum Ver</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </a>
+              </div>
             </div>
 
             {/* Form */}
@@ -758,6 +924,37 @@ function ContactSection() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">TELEFON NUMARASI</label>
                   <input name="phone" type="tel" disabled={status === 'submitting'} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-sm disabled:opacity-50" placeholder="+90 (___) ___ __ __" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="contact-product" className="text-xs font-bold text-slate-700 uppercase tracking-wider">ÜRÜN SEÇİMİ</label>
+                  <div className="relative">
+                    <select
+                      id="contact-product"
+                      name="product"
+                      value={selectedProduct}
+                      onChange={(e) => {
+                        setSelectedProduct(e.target.value);
+                        onSelectedProductChange(e.target.value);
+                      }}
+                      disabled={status === 'submitting'}
+                      className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-sm text-slate-800 appearance-none disabled:opacity-50"
+                    >
+                      <option value="">Ürün / Çözüm Seçiniz (Opsiyonel)</option>
+                      <optgroup label="Cihazlar">
+                        {products.filter(p => p.mainCategory === 'Cihazlar').map(p => (
+                          <option key={p.id} value={p.id}>{p.model} ({p.volume})</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="İzolasyonlar">
+                        {products.filter(p => p.mainCategory === 'İzolasyonlar').map(p => (
+                          <option key={p.id} value={p.id}>{p.model}</option>
+                        ))}
+                      </optgroup>
+                      <option value="Diğer / Genel Bilgi">Diğer / Genel Bilgi</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1135,7 +1332,17 @@ function Footer() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <a
+              href={GOOGLE_REVIEW_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 h-11 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold border border-slate-800 hover:border-amber-400/50 transition-all whitespace-nowrap shrink-0"
+              aria-label="Google'da Yorum Yap ve Puan Ver"
+            >
+              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <span>Google'da Yıldız &amp; Yorum Ver</span>
+            </a>
             <a href="https://www.facebook.com/genckalefrigo" target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full bg-slate-950 flex items-center justify-center text-brand-400 hover:text-brand-300 hover:bg-slate-900 transition-all border border-slate-800 hover:border-brand-500/40 shadow-sm hover:shadow-[0_0_15px_rgba(38,82,89,0.2)]">
               <Facebook className="w-5 h-5" />
             </a>
@@ -1168,9 +1375,50 @@ function Footer() {
   );
 }
 
-function LandingPage() {
-  const [activeCategory, setActiveCategory] = useState(categories[0]);
+const normalizeSearchText = (text: string) =>
+  text
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c');
+
+function LandingPage({
+  searchQuery,
+  onSearchChange,
+  selectedContactProduct,
+  onSelectedProductChange,
+}: {
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  selectedContactProduct: string;
+  onSelectedProductChange: (id: string) => void;
+}) {
+  const [mainCategory, setMainCategory] = useState<MainCategory>('Tümü');
+  const [activeCategory, setActiveCategory] = useState('Tümü');
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  const [zoomedInsulation, setZoomedInsulation] = useState<Product | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setZoomedInsulation(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    setSearchInput(searchQuery);
+    if (searchQuery.trim()) {
+      setMainCategory('Tümü');
+      setActiveCategory('Tümü');
+    }
+  }, [searchQuery]);
 
   // JSON-LD Schema for Organization and LocalBusiness
   const organizationSchema = {
@@ -1203,9 +1451,148 @@ function LandingPage() {
     }
   };
 
-  const filteredProducts = activeCategory === 'Tümü' 
-    ? products 
-    : products.filter(p => p.category === activeCategory);
+  const handleMainCategoryChange = (cat: MainCategory) => {
+    setMainCategory(cat);
+    setActiveCategory('Tümü');
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    onSearchChange(value);
+    if (value.trim()) {
+      setMainCategory('Tümü');
+      setActiveCategory('Tümü');
+    }
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearchChange(searchInput);
+    if (searchInput.trim()) {
+      setMainCategory('Tümü');
+      setActiveCategory('Tümü');
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+    onSearchChange('');
+  };
+
+  const resetAllFilters = () => {
+    setMainCategory('Tümü');
+    setActiveCategory('Tümü');
+    setSearchInput('');
+    onSearchChange('');
+  };
+
+  const subCategories =
+    mainCategory === 'Cihazlar'
+      ? categories
+      : mainCategory === 'İzolasyonlar'
+        ? insulationCategories
+        : [...categories, ...insulationCategories.filter(c => c !== 'Tümü')];
+
+  const cihazlarCount = products.filter(p => p.mainCategory === 'Cihazlar').length;
+  const izolasyonlarCount = products.filter(p => p.mainCategory === 'İzolasyonlar').length;
+
+  const normalizedQuery = normalizeSearchText(searchQuery.trim());
+
+  const filteredProducts = products.filter(p => {
+    const matchesMain = mainCategory === 'Tümü' || p.mainCategory === mainCategory;
+    const matchesSub =
+      activeCategory === 'Tümü' ||
+      (p.filterCategories ? p.filterCategories.includes(activeCategory) : p.category === activeCategory);
+
+    if (!matchesMain || !matchesSub) return false;
+    if (!normalizedQuery) return true;
+
+    const searchableFields = [
+      p.model,
+      p.series,
+      p.mainCategory,
+      p.category,
+      p.shortDesc,
+      p.volume,
+      p.voltage,
+      p.temp,
+      ...(p.vehicles || []),
+      ...(p.searchKeywords || []),
+    ];
+
+    return searchableFields.some(field => normalizeSearchText(field).includes(normalizedQuery));
+  });
+
+  const filteredDevices = filteredProducts.filter(p => p.mainCategory === 'Cihazlar');
+  const filteredInsulations = filteredProducts.filter(p => p.mainCategory === 'İzolasyonlar');
+  const showSplitSections = mainCategory === 'Tümü' && activeCategory === 'Tümü';
+
+  const renderProductCard = (product: Product) => {
+    const isInsulation = product.mainCategory === 'İzolasyonlar';
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.25 }}
+        key={product.id}
+        onClick={() => {
+          if (isInsulation) {
+            setZoomedInsulation(product);
+          } else {
+            navigate(`/urun/${product.id}`);
+          }
+        }}
+        className="group bg-white rounded-2xl border border-slate-300 p-5 shadow-sm hover:shadow-xl hover:shadow-brand-500/10 transition-all cursor-pointer hover:border-brand-500 flex flex-col h-full hover:-translate-y-1 duration-200"
+      >
+        <div className="aspect-video bg-slate-100 rounded-xl mb-4 overflow-hidden relative">
+          <img 
+            src={product.image} 
+            alt={`${product.model} - Frigo Soğutucu ve İzolasyon Çözümleri`}
+            title={`${product.model} ${isInsulation ? 'Araç İzolasyonu' : 'Elektrikli Soğutucu Cihazı'}`}
+            className="w-full h-full object-cover transition-transform duration-500 transform group-hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2 text-xs text-slate-500 mb-1.5">
+          <span className="font-semibold text-brand-700">
+            {product.mainCategory} · {product.category}
+          </span>
+        </div>
+        <h3 className="font-bold text-lg text-slate-900 mb-1">{product.model}</h3>
+        <p className="text-xs text-slate-500 mb-4 flex-grow leading-relaxed">{product.shortDesc}</p>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex justify-between gap-2 text-[11px] border-b border-slate-100 pb-1">
+            <span className="text-slate-400 shrink-0">Araç Hacmi:</span>
+            <span className="font-bold text-slate-800 text-right">{product.volume}</span>
+          </div>
+          <div className="flex justify-between gap-2 text-[11px] border-b border-slate-100 pb-1">
+            <span className="text-slate-400 shrink-0">{isInsulation ? 'Kaplama:' : 'Voltaj:'}</span>
+            <span className="font-bold text-slate-800 text-right">{product.voltage}</span>
+          </div>
+          <div className="flex justify-between gap-2 text-[11px]">
+            <span className="text-slate-400 shrink-0">{isInsulation ? 'Koruma:' : 'Sıcaklık:'}</span>
+            <span className="font-bold text-brand-600 text-right">{product.temp}</span>
+          </div>
+        </div>
+
+        <div className={`${isInsulation ? 'mb-0' : 'mb-5'} mt-auto pt-2 border-t border-slate-100`}>
+          <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Uyumlu Araçlar:</span>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {product.vehicles?.join(' · ')}
+          </p>
+        </div>
+        
+        {!isInsulation && (
+          <button className="w-full py-2.5 bg-slate-50 group-hover:bg-brand-600 group-hover:text-white transition-colors rounded-lg text-[10px] font-bold uppercase tracking-wider">
+            DETAYLARI İNCELE
+          </button>
+        )}
+      </motion.div>
+    );
+  };
 
   return (
     <>
@@ -1217,96 +1604,227 @@ function LandingPage() {
       <ProductWizard onSelectProduct={(p) => navigate(`/urun/${p.id}`)} />
       
       <main id="products" className="scroll-mt-24 py-10 md:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2">Elektrikli Araç Frigo ve Soğutucu Modellerimiz</h2>
-          <p className="text-sm text-slate-500 max-w-2xl">
-             Aracınızın taşıma kapasitesine ve hacmine en uygun tam elektrikli <strong className="text-slate-700">frigo soğutucu</strong> ve <strong className="text-slate-700">izolasyon</strong> çözümünü seçin. Tüm standart panelvan ve ticari araç segmentlerine uyumlu ürünlerimizle frigorifik dönüşümünüzü mükemmelleştirin.
-          </p>
+        <div className="mb-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2">Cihazlar ve İzolasyon Çözümlerimiz</h2>
+            <p className="text-sm text-slate-500 max-w-2xl">
+               Aracınızın taşıma kapasitesine ve sektörüne en uygun tam elektrikli <strong className="text-slate-700">soğutucu cihazlar</strong> veya sektörel <strong className="text-slate-700">araç izolasyonları</strong> arasından seçim yapın.
+            </p>
+          </div>
+          <div className="text-xs font-semibold text-slate-500 tabular-nums whitespace-nowrap shrink-0">
+            {filteredProducts.length} ürün listeleniyor
+          </div>
         </div>
 
-        {/* Filter Panel */}
-        <div className="flex flex-col sm:flex-row items-center justify-between py-4 bg-white border-b border-slate-200 px-4 mb-8 rounded-xl shadow-sm">
-          <div className="flex flex-wrap gap-2 p-1 bg-slate-100 rounded-lg w-full sm:w-auto overflow-x-auto">
-            {categories.map((cat) => (
+        {/* Expanded Filter & Search Panel */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 md:p-5 mb-8 space-y-4">
+          {/* Top Row: Two Main Categories + Search Bar */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Main Category Switcher */}
+            <div className="inline-flex flex-wrap sm:flex-nowrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl w-full lg:w-auto">
+              {mainCategories.map((cat) => {
+                const isActive = mainCategory === cat;
+                const count =
+                  cat === 'Tümü'
+                    ? products.length
+                    : cat === 'Cihazlar'
+                      ? cihazlarCount
+                      : izolasyonlarCount;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => handleMainCategoryChange(cat)}
+                    className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 transition-all ${
+                      isActive
+                        ? 'bg-brand-950 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                    }`}
+                  >
+                    {cat === 'Cihazlar' && <Zap className={`w-4 h-4 ${isActive ? 'text-brand-300' : 'text-brand-600'}`} />}
+                    {cat === 'İzolasyonlar' && <Layers className={`w-4 h-4 ${isActive ? 'text-brand-300' : 'text-brand-600'}`} />}
+                    <span>{cat}</span>
+                    <span className={`text-[11px] font-semibold tabular-nums ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search Bar & Button */}
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full lg:w-auto lg:min-w-[400px]">
+              <div className="relative flex-grow">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Model, araç veya sektör ara (ör. balıkçı, sanal market, paslanmaz)..."
+                  aria-label="Ürün veya sektör ara"
+                  className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    aria-label="Aramayı temizle"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 sm:px-6 py-2 rounded-md text-xs whitespace-nowrap transition-all ${
-                  activeCategory === cat 
-                    ? 'bg-white shadow-sm font-bold text-slate-800' 
-                    : 'hover:bg-white/50 font-semibold text-slate-500'
-                }`}
+                type="submit"
+                className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-sm"
               >
-                {cat}
+                <Search className="w-3.5 h-3.5" />
+                Ara
               </button>
-            ))}
+            </form>
           </div>
-          <div className="hidden sm:block text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-4">
-            {filteredProducts.length} ÜRÜN LİSTELENİYOR
+
+          {/* Bottom Row: Sub-category Filters */}
+          <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1.5 whitespace-nowrap">
+                {mainCategory === 'İzolasyonlar' ? 'Sektör:' : mainCategory === 'Cihazlar' ? 'Hacim:' : 'Alt Filtre:'}
+              </span>
+              {subCategories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs whitespace-nowrap shrink-0 transition-all ${
+                    activeCategory === cat
+                      ? 'bg-brand-50 text-brand-700 font-bold border border-brand-200'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium border border-transparent'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {(mainCategory !== 'Tümü' || activeCategory !== 'Tümü' || searchQuery.trim()) && (
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className="text-xs font-semibold text-slate-500 hover:text-brand-600 whitespace-nowrap shrink-0 self-start sm:self-center transition-colors"
+              >
+                Filtreleri Temizle
+              </button>
+            )}
           </div>
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <motion.div
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              key={product.id}
-              onClick={() => navigate(`/urun/${product.id}`)}
-              className="group bg-white rounded-2xl border border-slate-400 p-5 shadow-sm hover:shadow-xl hover:shadow-brand-500/10 transition-all cursor-pointer border-b-4 hover:border-brand-500 flex flex-col h-full hover:-translate-y-1.5 duration-300"
+        {filteredProducts.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+            <Search className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Aramanızla eşleşen ürün bulunamadı</h3>
+            <p className="text-sm text-slate-500 mb-6">Farklı bir anahtar kelime deneyebilir veya tüm kategorileri görüntüleyebilirsiniz.</p>
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
             >
-              <div className="aspect-video bg-slate-100 rounded-xl mb-4 overflow-hidden relative">
-                <img 
-                  src={product.image} 
-                  alt={`${product.model} - Frigo Soğutucu ve İzolasyon Çözümleri`}
-                  title={`${product.model} Elektrikli Soğutucu Ünite`}
-                  className="w-full h-full object-cover transition-transform duration-500 transform group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <h3 className="font-bold text-lg mb-1">{product.model}</h3>
-              <p className="text-xs text-slate-500 mb-4 flex-grow">{product.shortDesc}</p>
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-[11px] border-b border-slate-50 pb-1">
-                  <span className="text-slate-400">Araç Hacmi:</span>
-                  <span className="font-bold">{product.volume}</span>
+              Tüm Ürünleri Göster
+            </button>
+          </div>
+        ) : showSplitSections ? (
+          <div className="space-y-14">
+            {filteredDevices.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between pb-3 mb-6 border-b border-slate-200">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center">
+                      <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-extrabold text-slate-900">Cihazlar</h3>
+                      <p className="text-xs text-slate-500">Tam elektrikli frigo soğutucu üniteleri</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-500 tabular-nums">{filteredDevices.length} model</span>
                 </div>
-                <div className="flex justify-between text-[11px] border-b border-slate-50 pb-1">
-                  <span className="text-slate-400">Voltaj:</span>
-                  <span className="font-bold">{product.voltage}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredDevices.map(renderProductCard)}
                 </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400">Sıcaklık:</span>
-                  <span className="font-bold text-brand-600">{product.temp}</span>
-                </div>
-              </div>
+              </section>
+            )}
 
-              <div className="flex flex-wrap gap-1.5 mb-5 mt-auto">
-                <span className="w-full text-[10px] font-bold text-slate-400 uppercase mb-1">Uyumlu Araçlar:</span>
-                {product.vehicles?.map(v => (
-                  <span key={v} className="bg-slate-100 text-slate-600 text-[9px] font-medium px-2 py-1 rounded-md border border-slate-200 hover:border-brand-300 transition-colors cursor-default" title={`${product.model} - ${v} Uyumlu Frigo Sistemleri`}>
-                    {v}
-                  </span>
-                ))}
-              </div>
-              
-              <button className="w-full py-2 bg-slate-50 group-hover:bg-brand-600 group-hover:text-white transition-colors rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                DETAYLARI İNCELE
-              </button>
-            </motion.div>
-          ))}
-        </div>
+            {filteredInsulations.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between pb-3 mb-6 border-b border-slate-200">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center">
+                      <Layers className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-extrabold text-slate-900">İzolasyonlar</h3>
+                      <p className="text-xs text-slate-500">Sektöre özel profesyonel araç izolasyon çözümleri</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-500 tabular-nums">{filteredInsulations.length} çözüm</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredInsulations.map(renderProductCard)}
+                </div>
+              </section>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map(renderProductCard)}
+          </div>
+        )}
       </main>
 
       <AboutSection />
       <KumandaSection />
       <TrustSection />
-      <ContactSection />
+      <ContactSection selectedProductId={selectedContactProduct} onSelectedProductChange={onSelectedProductChange} />
+
+      <AnimatePresence>
+        {zoomedInsulation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => setZoomedInsulation(null)}
+          >
+            <button
+              type="button"
+              onClick={() => setZoomedInsulation(null)}
+              aria-label="Görseli kapat"
+              className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="max-w-5xl w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={zoomedInsulation.image}
+                alt={zoomedInsulation.model}
+                className="w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+                referrerPolicy="no-referrer"
+              />
+              <div className="text-center text-sm text-slate-200 mt-4 font-semibold">
+                {zoomedInsulation.model}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -1322,13 +1840,13 @@ function ServicesPage() {
   const servicesSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "serviceType": "Araç Frigo Soğutucu ve İzolasyon Çözümleri",
+    "serviceType": "Araç Frigo Soğutucu, İzolasyon ve Frigorifik Kasa Çözümleri",
     "provider": {
       "@type": "Organization",
       "name": "Gensa Frigo",
       "url": "https://gensafrigo.com"
     },
-    "description": "Panelvan ve ticari araçlar için elektrikli frigo soğutma sistemleri montajı, B2B paket satış ve profesyonel ısı izolasyon hizmetleri.",
+    "description": "Panelvan ve ticari araçlar için elektrikli frigo soğutma sistemleri montajı, 42 densite poliüretan araç izolasyonu (-18 °C için çift kat 8 cm), et kancalı araç dönüşümü ve sağlam frigorifik kasa üretimi.",
     "areaServed": {
       "@type": "Country",
       "name": "Türkiye"
@@ -1345,113 +1863,146 @@ function ServicesPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-600 rounded-full blur-[120px] opacity-20 transform -translate-x-1/2 translate-y-1/2"></div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-8 tracking-tight">
-            Sektörün Profesyonelleri İçin:<br/><span className="text-brand-400">Gensa Frigo Soğutma Üniteleri</span>
+            Soğuk Zincirin Güçlü Ortağı:<br/><span className="text-brand-400">Ünite, İzolasyon ve Kasa Çözümleri</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
-            Gensa Frigo olarak, soğutma sektöründeki çözüm ortaklarımız, oto elektrik servisleri ve üst yapı firmaları için dünyanın en kolay montajına sahip frigo soğutucu ünitelerini üretiyoruz. Geniş ürün gamımızla, küçük hacimli panelvanlardan büyük tonajlı kasalı araçlara kadar her ihtiyaca profesyonel çözümler sunuyoruz.
+            Gensa Frigo olarak yalnızca kolay montajlı elektrikli soğutucu üniteleri değil; 42 densite poliüretan araç içi izolasyon ve yüksek mukavemetli frigorifik kasa üretimi de gerçekleştiriyoruz. Küçük panelvanlardan ağır tonajlı kamyonlara kadar her araç tipine özel tek çatı altında eksiksiz soğuk zincir çözümleri sunuyoruz.
           </p>
         </div>
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
-             <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-8 shadow-inner">
-                <Settings className="w-8 h-8" />
-             </div>
-             <h3 className="text-2xl font-bold text-slate-900 mb-4 leading-snug">Dünyanın En Hızlı Montajlı Frigo Üniteleri</h3>
-             <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
-               Teknik ekiplerin ve servislerin vaktini kazanması için ünitelerimizi "ustalık dostu" bir mimariyle tasarladık. Teknik ekiplerin ve bayilerin montaj süresini minimuma indiren, karmaşık tesisat gerektirmeyen modüler tasarımı sayesinde iş kapasitenizi artırıyoruz.
-             </p>
-             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-8">
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Zaman Verimliliği</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Montaj sürecini minimize eden modüler tasarım sayesinde gün içindeki iş kapasitenizi artırın.</span>
-                 </div>
-               </li>
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Hatasız Kurulum</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Her araç tipine ve tavan yapısına saniyeler içinde uyum sağlayan, hata payını sıfıra indiren mühendislik.</span>
-                 </div>
-               </li>
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Kabin İçi Ergonomi</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Araç iç tavanına monte edilen ünitelerimiz, hacim kaybını önler ve profesyonel bir görünüm sunar.</span>
-                 </div>
-               </li>
-             </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-1.5 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
+            <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+              <Settings className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">Hızlı Montajlı Frigo Üniteleri</h3>
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              Teknik ekiplerin vaktini kazandıran ustalık dostu modüler mimariyle, küçük hacimli panelvanlardan büyük tonajlı kasalı araçlara kadar geniş bir elektrikli ürün gamı sunuyoruz.
+            </p>
+            <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Zaman Verimliliği & Hatasız Kurulum</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Karmaşık tesisat gerektirmeyen modüler yapı sayesinde montaj süresi minimuma iner.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Motor Bağımsız Elektrikli Seri</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Yakıt tasarrufu sağlayan, çevre dostu ve araç motor garantisini riske atmayan yeni nesil üniteler.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">5 m³’ten Büyük Kasalara Tam Uyum</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Kabin içi tavan ergonomisiyle yükleme hacmini koruyan, her segmente özel kapasite seçenekleri.</span>
+                </div>
+              </li>
+            </ul>
           </div>
 
-          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
-             <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-8 shadow-inner">
-                <ThermometerSnowflake className="w-8 h-8" />
-             </div>
-             <h3 className="text-2xl font-bold text-slate-900 mb-4 leading-snug">Her İhtiyaca Uygun Geniş Ürün Gamı</h3>
-             <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
-               Lojistik sektörünün değişken ihtiyaçlarını biliyoruz. Bu yüzden, soğutma kapasitesinden araç tipine kadar çok geniş bir yelpazede üretim yapıyoruz.
-             </p>
-             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-8">
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Elektrikli Seri</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Araç motorundan bağımsız çalışan, çevre dostu ve karbon emisyonunu düşüren yeni nesil elektrikli üniteler.</span>
-                 </div>
-               </li>
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Farklı Kapasite Seçenekleri</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">5 m³’ten en büyük kasalı araç hacimlerine kadar, her türlü taşıma koşuluna uygun ünite seçenekleri.</span>
-                 </div>
-               </li>
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Tam Uyumluluk</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Sadece panelvanlar için değil; tüm kasalı kamyon ve kamyonet grupları için optimize edilmiş sistemler.</span>
-                 </div>
-               </li>
-             </ul>
+          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-1.5 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
+            <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+              <Layers className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">42 Densite Profesyonel Araç İzolasyonu</h3>
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              Isı kaybını sıfıra indiren yüksek yoğunluklu poliüretan köpük uygulamalarımızla araç içini gıda ve ilaç taşımacılığına uygun, sızdırmaz bir soğuk odaya dönüştürüyoruz.
+            </p>
+            <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">42 Densite Poliüretan Köpük</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Yüksek yoğunluklu dolgu sayesinde ısı köprülerini önler, soğutucu ünitenin ömrünü uzatır.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">-18 °C İçin Çift Kat 8 cm Kalınlık</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Derin dondurucu araçlarda çift katman ile 8 cm köpük kalınlığına ulaşarak kusursuz sıcaklık koruması sağlar.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Hijyenik Monoblok & Paslanmaz Yüzey</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Kolay yıkanabilir antibakteriyel fiber veya 304 kalite saf paslanmaz çelik kaplama alternatifleri.</span>
+                </div>
+              </li>
+            </ul>
           </div>
-          
-          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
-             <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-8 shadow-inner">
-                <BatteryCharging className="w-8 h-8" />
-             </div>
-             <h3 className="text-2xl font-bold text-slate-900 mb-4 leading-snug">Kusursuz Paket Satışları</h3>
-             <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
-               Geleceğin soğutma çözümlerini bayilerimiz ve iş ortaklarımızla büyüterek sunuyoruz. Diğer frigo firmaları ve oto elektrik servisleri için hazırladığımız özel paket satış seçenekleriyle, yüksek kâr marjlı ve sürdürülebilir bir tedarik zinciri oluşturuyoruz.
-             </p>
-             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-8">
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">B2B Tedarik Avantajı</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Doğrudan üreticiden alım yaparak maliyet avantajı yakalayın ve rekabet gücünüzü artırın.</span>
-                 </div>
-               </li>
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Ünite Paket Satış Odaklılık</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Tekli alımlar yerine bayi odaklı toplu paketlerle stok maliyetlerinizi optimize edin.</span>
-                 </div>
-               </li>
-               <li className="flex items-start gap-4">
-                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
-                 <div>
-                   <strong className="text-slate-900 text-sm block mb-1">Tam Donanımlı Teknik Destek</strong>
-                   <span className="text-sm text-slate-600 leading-relaxed">Sadece ünite değil, satış sonrası teknik dökümantasyon ve parça desteğiyle iş ortaklarımızın yanındayız.</span>
-                 </div>
-               </li>
-             </ul>
+
+          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-1.5 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
+            <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+              <Truck className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">Sağlam Frigorifik Kasa & Özel Üstyapı</h3>
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              Zorlu yol ve yükleme koşullarına dayanacak şekilde ürettiğimiz sağlam frigorifik kasalarla hem hafif ticari hem ağır vasıta araçlar için özel çözümler geliştiriyoruz.
+            </p>
+            <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Yüksek Mukavemetli Sağlam Kasalar</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Darbe ve titreşime dirençli, su sızdırmaz ve uzun yıllar formunu koruyan güçlendirilmiş kasa gövdesi.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Et Kancalı Araç Dönüşümleri</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Ağır karkas et taşımacılığına uygun paslanmaz çelik ray sistemleri ve güvenli askı donanımı.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Sektöre Özel İç Donanım</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Balıkçı araçlarına özel giderli alüminyum zemin, süt-şarküteri rafları ve özel bölme çözümleri.</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 hover:-translate-y-1.5 transition-transform duration-300 flex flex-col h-full border-t-4 border-t-brand-500">
+            <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+              <BatteryCharging className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">B2B Paket Satış & Teknik Destek</h3>
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              Soğutma servisleri, oto elektrik bayileri ve üstyapı firmaları için hazırladığımız özel tedarik paketleriyle sürdürülebilir ve kârlı bir iş ortaklığı sunuyoruz.
+            </p>
+            <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Üreticiden Doğrudan Tedarik</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Doğrudan fabrikadan alım modeliyle rekabetçi maliyet ve yüksek bayi kâr marjı avantajı.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Toplu Paket Seçenekleri</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Bayi odaklı paket satışlarla stok maliyetlerinizi düşürün ve teslimat süreçlerinizi hızlandırın.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3.5">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
+                <div>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Satış Sonrası Teknik Güç</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Kurulum dokümantasyonu ve hazır yedek parça desteğiyle iş ortaklarımızın her an yanındayız.</span>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -1460,7 +2011,7 @@ function ServicesPage() {
           <div className="relative z-10 px-8">
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6">Uygulama Alanlarımızı Keşfedin</h2>
             <p className="text-slate-500 max-w-2xl mx-auto mb-10 text-lg">
-              Ford, Volkswagen, Mercedes, Renault, FIAT, Opel ve daha birçok marka araç için uyguladığımız profesyonel izolasyon ve soğutucu çözümlerimizi galerimizde inceleyebilirsiniz.
+              Ford, Volkswagen, Mercedes, Renault, FIAT, Opel ve daha birçok marka araç için uyguladığımız profesyonel izolasyon, kasa ve soğutucu çözümlerimizi galerimizde inceleyebilirsiniz.
             </p>
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -1484,6 +2035,8 @@ function ServicesPage() {
 }
 
 function ApplicationAreasModal({ onClose }: { onClose: () => void }) {
+  const lastGalleryImage = "https://www.image2url.com/r2/default/images/1777366677922-c433ba74-3967-444e-9df0-2d753b06e32d.jfif";
+
   const areas = [
     { name: "Ford Transit", keywords: "fordtransit, frigoizolasyon, gensa", image: "https://www.image2url.com/r2/default/images/1777364677859-17c8b82c-d147-491d-9dec-d3d7664fbb79.png" },
     { name: "Volkswagen Crafter", keywords: "crafter, sogutucusistemleri, gensa", image: "https://www.image2url.com/r2/default/images/1777366557535-74dedbe0-c184-4a94-aa78-7d82a64ede80.jfif" },
@@ -1499,7 +2052,18 @@ function ApplicationAreasModal({ onClose }: { onClose: () => void }) {
     { name: "Hatay Frigo", keywords: "hatayfrigo, akdeniz, gensa", image: "https://www.image2url.com/r2/default/images/1777367631660-88b195d4-55a5-4760-bd9d-6107a04b5d8e.jfif" },
     { name: "Adıyaman Frigo", keywords: "adiyamanfrigo, guneydogu, gensafrigo", image: "https://www.image2url.com/r2/default/images/1777365787688-33853b97-64aa-425f-b210-5c8d9662169e.jfif" },
     { name: "Balıkesir Frigo", keywords: "balıkesirfrigo, ege, gensa", image: "https://www.image2url.com/r2/default/images/1777366808106-fc1105a5-36bb-4c38-bc5e-1e1ae2e63b5b.png" },
-    { name: "Ege Frigo", keywords: "egefrigo, sogukzincir, gensa", image: "https://www.image2url.com/r2/default/images/1777366677922-c433ba74-3967-444e-9df0-2d753b06e32d.jfif" }
+    { name: "Ege Frigo", keywords: "egefrigo, sogukzincir, gensa", image: lastGalleryImage },
+    // +10 yeni görsel alanı (Görsellerinizi aşağıdakilerle değiştirebilirsiniz)
+    { name: "Alüminyum Zemin", keywords: "aluminyumzemin, izolasyon, gensa", image: "https://cdn.phototourl.com/anon/2026-11-16-00a9b8e6-a22e-466a-a8dc-aea1c77ce27d.jpg" },
+    { name: "Kocaeli Frigo", keywords: "kocaelifrigo, marmara, gensa", image: "https://cdn.phototourl.com/anon/2026-11-16-a34083e2-de39-407e-bfa4-08f2c8af6ba3.jpg" },
+    { name: "Et kancali Custom", keywords: "etkancali, customfrigo, gensa", image: "https://cdn.phototourl.com/anon/2026-11-16-bfececd9-2b93-4727-a141-be18fcd38eb8.jpg" },
+    { name: "İzolasyon -18 Frigo", keywords: "izolasyon, donukfrigo, et", image: "https://cdn.phototourl.com/anon/2026-11-16-dc5f3c55-020d-439b-8ec5-4df409e77a39.jpg" },
+    { name: "Paslanmaz Kaplama", keywords: "paslanmaz, iveco, daily", image: "https://cdn.phototourl.com/anon/2026-11-16-fa70c9ae-7bfe-41f7-beb9-5174a928c85c.jpg" },
+    { name: "İveco Daily Frigorifrik Kaplama", keywords: "frigo, izolasyon, gensa", image: "https://www.image2url.com/r2/default/images/1794897988589-fbebeb1a-363f-4c39-8a67-bc2a2bb5e948.jfif" },
+    { name: "Opel Movano Frigo İzolasyon", keywords: "kasa, lojistik, movano", image: "https://www.image2url.com/r2/default/images/1794896924808-1846f4d3-9f6b-4091-a373-5690b76c033d.jpeg" },
+    { name: "Ford Transit Cenaze Aracı Dönüşümü", keywords: "transit, cenaze, frigo, elektrikli", image: "https://www.image2url.com/r2/default/images/1794898284379-eea5fbc5-7467-4189-adbd-226040571bfe.jpeg" },
+    { name: "Maxus Deliver 9 Frigo İzolasyon", keywords: "elektrikli, maxus, deliver, -18", image: "https://www.image2url.com/r2/default/images/1794897555527-c6d65791-efc4-4d32-9b74-f8f47a10b68f.png" },
+    { name: "Maxus Deliver 7 Frigo İzolasyon", keywords: "elektrikli, maxus, deliver, +4", image: "https://www.image2url.com/r2/default/images/1794897724128-89c36b17-dc5a-4bd9-8391-0658f119d0ac.png" }
   ];
 
   return (
@@ -1519,7 +2083,7 @@ function ApplicationAreasModal({ onClose }: { onClose: () => void }) {
         <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
           <div>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Uygulama Alanlarımız</h2>
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Her Sektöre Profesyonel Çözümler</p>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Her Sektöre Profesyonel Çözümler · {areas.length} Görsel</p>
           </div>
           <button onClick={onClose} className="w-12 h-12 bg-slate-100 hover:bg-brand-600 hover:text-white rounded-full flex items-center justify-center transition-all">
             <X className="w-6 h-6" />
@@ -1533,8 +2097,8 @@ function ApplicationAreasModal({ onClose }: { onClose: () => void }) {
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.12, zIndex: 20 }}
-                transition={{ delay: i * 0.05, duration: 0.4, ease: "easeOut" }}
+                whileHover={{ scale: 1.08, zIndex: 20 }}
+                transition={{ delay: Math.min(i * 0.03, 0.45), duration: 0.35, ease: "easeOut" }}
                 className="group relative aspect-[3/4] bg-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-[0_20px_50px_rgba(37,99,235,0.4)] transition-all duration-500 cursor-pointer"
               >
                 <img 
@@ -1771,13 +2335,15 @@ function FAQPage() {
   );
 }
 
-function ProductDetailPage() {
+function ProductDetailPage({ onRequestQuote }: { onRequestQuote: (id: string) => void }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const product = products.find(p => p.id === id);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    setLightboxIndex(null);
   }, [id]);
 
   if (!product) {
@@ -1812,6 +2378,9 @@ function ProductDetailPage() {
     }
   };
 
+  const hasGallery = Boolean(product.galleryImages && product.galleryImages.length > 0);
+  const gallery = product.galleryImages || [];
+
   return (
     <div className="bg-slate-50 min-h-screen py-12 md:py-20 px-4 sm:px-6 lg:px-8">
       <script type="application/ld+json">
@@ -1825,40 +2394,175 @@ function ProductDetailPage() {
           <ArrowLeft className="w-5 h-5" /> GERİ DÖN
         </button>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200 border border-slate-200 overflow-hidden">
-          <img 
-            src={product.detailImage} 
-            alt={`${product.model} Detaylı Özellikler`} 
-            className="w-full h-auto object-contain"
-          />
-        </div>
+        {hasGallery ? (
+          <div className="space-y-8">
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 p-6 md:p-10">
+              <div className="text-xs font-bold text-brand-700 uppercase tracking-wider mb-2">
+                {product.mainCategory} · {product.category}
+              </div>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">{product.model}</h1>
+              <p className="text-slate-600 text-base md:text-lg max-w-3xl mb-8 leading-relaxed">{product.shortDesc}</p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-y border-slate-100 mb-8">
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Araç Hacmi</div>
+                  <div className="text-sm font-bold text-slate-900">{product.volume}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kaplama Yapısı</div>
+                  <div className="text-sm font-bold text-slate-900">{product.voltage}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Dayanım / Isı</div>
+                  <div className="text-sm font-bold text-brand-600">{product.temp}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Uygulama</div>
+                  <div className="text-sm font-bold text-slate-900">{product.installLocation}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-900">Uygulama Görselleri ({gallery.length})</h2>
+                <span className="text-xs text-slate-400">Büyütmek için görsele tıklayın</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {gallery.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setLightboxIndex(idx)}
+                    className="group relative aspect-video bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 hover:border-brand-500 transition-all text-left"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`${product.model} Uygulama Görseli ${idx + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200 border border-slate-200 overflow-hidden">
+            <img 
+              src={product.detailImage} 
+              alt={`${product.model} Detaylı Özellikler`} 
+              className="w-full h-auto object-contain"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        )}
         
         <div className="mt-12 text-center">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Bu Ürün İçin Teklif Almak İster misiniz?</h2>
-            <Link to="/#contact" onClick={() => {
-              setTimeout(() => {
-                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
-            }} className="inline-flex px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-full font-bold uppercase tracking-wider transition-colors shadow-xl shadow-brand-600/30 gap-2 items-center">
+            <Link
+              to="/#contact"
+              state={{ selectedProductId: product.id }}
+              onClick={() => {
+                onRequestQuote(product.id);
+                setTimeout(() => {
+                    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+              className="inline-flex px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-full font-bold uppercase tracking-wider transition-colors shadow-xl shadow-brand-600/30 gap-2 items-center"
+            >
               HEMEN TEKLİF AL <ArrowRight className="w-5 h-5" />
             </Link>
         </div>
       </div>
+
+      {/* Lightbox Modal for Gallery */}
+      <AnimatePresence>
+        {lightboxIndex !== null && gallery[lightboxIndex] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => setLightboxIndex(null)}
+          >
+            <button
+              type="button"
+              onClick={() => setLightboxIndex(null)}
+              aria-label="Görseli kapat"
+              className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {gallery.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxIndex((lightboxIndex - 1 + gallery.length) % gallery.length);
+                  }}
+                  aria-label="Önceki görsel"
+                  className="absolute left-4 md:left-8 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxIndex((lightboxIndex + 1) % gallery.length);
+                  }}
+                  aria-label="Sonraki görsel"
+                  className="absolute right-4 md:right-8 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+
+            <div className="max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={gallery[lightboxIndex]}
+                alt={`${product.model} Görsel ${lightboxIndex + 1}`}
+                className="w-full max-h-[82vh] object-contain rounded-2xl"
+                referrerPolicy="no-referrer"
+              />
+              <div className="text-center text-sm text-slate-300 mt-4 font-medium tabular-nums">
+                {product.model} · {lightboxIndex + 1} / {gallery.length}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedContactProduct, setSelectedContactProduct] = useState('');
+
   return (
     <div className="min-h-screen flex flex-col scroll-smooth">
-      <Header />
+      <Header searchQuery={searchQuery} onSearch={setSearchQuery} onSelectProduct={setSelectedContactProduct} />
       <div className="flex-grow">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/"
+            element={
+              <LandingPage
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                selectedContactProduct={selectedContactProduct}
+                onSelectedProductChange={setSelectedContactProduct}
+              />
+            }
+          />
           <Route path="/hizmetlerimiz" element={<ServicesPage />} />
           <Route path="/sikca-sorulan-sorular" element={<FAQPage />} />
           <Route path="/bayi-girisi" element={<DealerLoginPage />} />
-          <Route path="/urun/:id" element={<ProductDetailPage />} />
+          <Route path="/urun/:id" element={<ProductDetailPage onRequestQuote={setSelectedContactProduct} />} />
         </Routes>
       </div>
       <Footer />
