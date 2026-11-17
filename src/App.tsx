@@ -1420,35 +1420,93 @@ function LandingPage({
     }
   }, [searchQuery]);
 
-  // JSON-LD Schema for Organization and LocalBusiness
+  useEffect(() => {
+    document.title = 'Gensa Frigo | Frigorifik Kasa, İzolasyon ve Elektrikli Frigo';
+  }, []);
+
+  // JSON-LD Schema for Organization, LocalBusiness, Catalog & AI Search (GEO)
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "Gensa Frigo",
-    "image": "https://www.image2url.com/r2/default/images/1776844880206-6ab47a67-9326-49bb-87dc-410fc271aec1.png",
-    "@id": "https://gensafrigo.com",
-    "url": "https://gensafrigo.com",
-    "telephone": "+905332826237",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "İkitelli Organize Sanayi Bölgesi",
-      "addressLocality": "Başakşehir",
-      "addressRegion": "İstanbul",
-      "postalCode": "34490",
-      "addressCountry": "TR"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 41.090173,
-      "longitude": 28.799341
-    },
-    "description": "Elektrikli araç frigo soğutucu sistemleri ve profesyonel araç izolasyon çözümleri üreticisi.",
-    "openingHoursSpecification": {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      "opens": "09:00",
-      "closes": "18:00"
-    }
+    "@graph": [
+      {
+        "@type": ["LocalBusiness", "Manufacturer"],
+        "@id": "https://gensafrigo.com/#organization",
+        "name": "Gensa Frigo",
+        "image": "https://www.image2url.com/r2/default/images/1776844880206-6ab47a67-9326-49bb-87dc-410fc271aec1.png",
+        "@id_url": "https://gensafrigo.com",
+        "url": "https://gensafrigo.com",
+        "telephone": "+908506110993",
+        "email": "info@gencsogutma.org",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Ziya Gökalp Mah. Pik Dökümcüler Sanayi Sitesi B6 Blok No:5, İkitelli OSB",
+          "addressLocality": "Başakşehir",
+          "addressRegion": "İstanbul",
+          "postalCode": "34490",
+          "addressCountry": "TR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 41.090173,
+          "longitude": 28.799341
+        },
+        "description": "Elektrikli frigo soğutucu sistemleri, polyester kasa, kamyon kasası, Ateco ve Iveco kasa, Maxus Deliver uyumlu dönüşümler, 42 densite poliüretan panelvan araç kaplamaları ve veteriner araçları üreticisi.",
+        "knowsAbout": [
+          "Kasa",
+          "Polyester Kasa",
+          "Kamyon Kasası",
+          "Ateco Kasa",
+          "Mercedes Atego Frigorifik Kasa",
+          "Iveco Kasa",
+          "Iveco Daily Frigorifik Dönüşüm",
+          "Panelvan Araç Kaplamaları",
+          "42 Densite Poliüretan Köpük",
+          "-18°C Çift Kat 8 cm İzolasyon",
+          "Veteriner Araçları",
+          "Et Kancalı Araç Dönüşümü",
+          "Maxus",
+          "Maxus Deliver 7",
+          "Maxus Deliver 9",
+          "Elektrikli Frigo Soğutucu"
+        ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Gensa Frigo Ürün ve Üstyapı Çözümleri",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Polyester Kasa, Kamyon Kasası, Ateco Kasa ve Iveco Kasa Üretimi",
+                "description": "Mercedes Atego (Ateco), Iveco Daily, kamyon ve kamyonet şasileri için yüksek mukavemetli monoblok polyester kasa ve frigorifik kasa imalatı."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Panelvan Araç Kaplamaları ve 42 Densite Poliüretan İzolasyon",
+                "description": "Maxus Deliver 7, Maxus Deliver 9, Ford Transit, VW Crafter, Fiat Ducato, Renault Master ve tüm panelvanlar için 42 densite köpüklü, -18°C çift kat 8 cm araç içi izolasyon."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Veteriner Araçları, Et Kancalı Araçlar ve Özel Soğuk Zincir Dönüşümleri",
+                "description": "Veteriner klinikleri için özel donanımlı veteriner araçları, paslanmaz raylı et kancalı araçlar, ilaç medikal, balıkçı, sanal market ve cenaze aracı dönüşümü."
+              }
+            }
+          ]
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          "opens": "09:00",
+          "closes": "18:00"
+        }
+      }
+    ]
   };
 
   const handleMainCategoryChange = (cat: MainCategory) => {
@@ -1563,7 +1621,7 @@ function LandingPage({
         <h3 className="font-bold text-lg text-slate-900 mb-1">{product.model}</h3>
         <p className="text-xs text-slate-500 mb-4 flex-grow leading-relaxed">{product.shortDesc}</p>
         
-        <div className="space-y-2 mb-4">
+        <div className={`space-y-2 ${isInsulation ? 'mb-0 mt-auto pt-2 border-t border-slate-100' : 'mb-4'}`}>
           <div className="flex justify-between gap-2 text-[11px] border-b border-slate-100 pb-1">
             <span className="text-slate-400 shrink-0">Araç Hacmi:</span>
             <span className="font-bold text-slate-800 text-right">{product.volume}</span>
@@ -1578,17 +1636,19 @@ function LandingPage({
           </div>
         </div>
 
-        <div className={`${isInsulation ? 'mb-0' : 'mb-5'} mt-auto pt-2 border-t border-slate-100`}>
-          <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Uyumlu Araçlar:</span>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            {product.vehicles?.join(' · ')}
-          </p>
-        </div>
-        
         {!isInsulation && (
-          <button className="w-full py-2.5 bg-slate-50 group-hover:bg-brand-600 group-hover:text-white transition-colors rounded-lg text-[10px] font-bold uppercase tracking-wider">
-            DETAYLARI İNCELE
-          </button>
+          <>
+            <div className="mb-5 mt-auto pt-2 border-t border-slate-100">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Uyumlu Araçlar:</span>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {product.vehicles?.join(' · ')}
+              </p>
+            </div>
+            
+            <button className="w-full py-2.5 bg-slate-50 group-hover:bg-brand-600 group-hover:text-white transition-colors rounded-lg text-[10px] font-bold uppercase tracking-wider">
+              DETAYLARI İNCELE
+            </button>
+          </>
         )}
       </motion.div>
     );
@@ -1834,22 +1894,33 @@ function ServicesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'Hizmetlerimiz | Kasa, İzolasyon ve Elektrikli Frigo – Gensa Frigo';
   }, []);
 
   // JSON-LD Schema for Services
   const servicesSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "serviceType": "Araç Frigo Soğutucu, İzolasyon ve Frigorifik Kasa Çözümleri",
+    "serviceType": "Araç Frigo Soğutucu, Polyester Kasa, Panelvan Kaplama ve Frigorifik Kasa Çözümleri",
     "provider": {
       "@type": "Organization",
       "name": "Gensa Frigo",
       "url": "https://gensafrigo.com"
     },
-    "description": "Panelvan ve ticari araçlar için elektrikli frigo soğutma sistemleri montajı, 42 densite poliüretan araç izolasyonu (-18 °C için çift kat 8 cm), et kancalı araç dönüşümü ve sağlam frigorifik kasa üretimi.",
+    "description": "Panelvan araç kaplamaları, 42 densite poliüretan araç izolasyonu (-18 °C için çift kat 8 cm), polyester kasa, kamyon kasası, Ateco ve Iveco kasa imalatı, et kancalı ve veteriner araçları dönüşümü ile Maxus Deliver uyumlu elektrikli frigo sistemleri.",
     "areaServed": {
       "@type": "Country",
       "name": "Türkiye"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Frigorifik Üstyapı ve Soğutma Hizmetleri",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Polyester Kasa ve Kamyon Kasası Üretimi (Ateco Kasa, Iveco Kasa)" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Panelvan Araç Kaplamaları ve 42 Densite Poliüretan İzolasyon" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Veteriner Araçları ve Et Kancalı Araç Dönüşümleri" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Maxus Deliver 7 & Maxus Deliver 9 Elektrikli Frigo Montajı" } }
+      ]
     }
   };
 
@@ -1866,7 +1937,7 @@ function ServicesPage() {
             Soğuk Zincirin Güçlü Ortağı:<br/><span className="text-brand-400">Ünite, İzolasyon ve Kasa Çözümleri</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
-            Gensa Frigo olarak yalnızca kolay montajlı elektrikli soğutucu üniteleri değil; 42 densite poliüretan araç içi izolasyon ve yüksek mukavemetli frigorifik kasa üretimi de gerçekleştiriyoruz. Küçük panelvanlardan ağır tonajlı kamyonlara kadar her araç tipine özel tek çatı altında eksiksiz soğuk zincir çözümleri sunuyoruz.
+            Gensa Frigo olarak yalnızca kolay montajlı elektrikli soğutucu üniteleri değil; 42 densite poliüretan panelvan araç kaplamaları, monoblok polyester kasa ve yüksek mukavemetli kamyon kasası üretimi de gerçekleştiriyoruz. Maxus Deliver serisi gibi yeni nesil elektrikli ticari filolardan ağır tonajlı şasilere kadar her araç için tek çatı altında eksiksiz soğuk zincir güvencesi sunuyoruz.
           </p>
         </div>
       </section>
@@ -1879,28 +1950,28 @@ function ServicesPage() {
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">Hızlı Montajlı Frigo Üniteleri</h3>
             <p className="text-slate-600 mb-6 leading-relaxed">
-              Teknik ekiplerin vaktini kazandıran ustalık dostu modüler mimariyle, küçük hacimli panelvanlardan büyük tonajlı kasalı araçlara kadar geniş bir elektrikli ürün gamı sunuyoruz.
+              Teknik ekiplerin vaktini kazandıran ustalık dostu modüler mimariyle, şehir içi dağıtım araçlarından Maxus Deliver 7 ve Deliver 9 gibi modern elektrikli filolara kadar her segmentte kesintisiz soğutma sağlıyoruz.
             </p>
             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
                   <strong className="text-slate-900 text-sm block mb-0.5">Zaman Verimliliği & Hatasız Kurulum</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Karmaşık tesisat gerektirmeyen modüler yapı sayesinde montaj süresi minimuma iner.</span>
+                  <span className="text-sm text-slate-600 leading-relaxed">Karmaşık tesisat gerektirmeyen modüler yapı sayesinde montaj süresi minimuma iner, araçlarınız hızla sahaya döner.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
-                  <strong className="text-slate-900 text-sm block mb-0.5">Motor Bağımsız Elektrikli Seri</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Yakıt tasarrufu sağlayan, çevre dostu ve araç motor garantisini riske atmayan yeni nesil üniteler.</span>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Maxus Deliver & Elektrikli Filolara Tam Uyum</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Maxus Deliver serisi başta olmak üzere yeni nesil ticari araçlarda motor garantisini koruyan, yakıt tasarruflu sıfır emisyon teknolojisi.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
-                  <strong className="text-slate-900 text-sm block mb-0.5">5 m³’ten Büyük Kasalara Tam Uyum</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Kabin içi tavan ergonomisiyle yükleme hacmini koruyan, her segmente özel kapasite seçenekleri.</span>
+                  <strong className="text-slate-900 text-sm block mb-0.5">5 m³’ten Büyük Kamyon Kasalarına Uyumlu</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Tavan içi ergonomisiyle yükleme hacmini koruyan veya kasa üzerine kolayca entegre edilen güçlü kapasite seçenekleri.</span>
                 </div>
               </li>
             </ul>
@@ -1910,30 +1981,30 @@ function ServicesPage() {
             <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
               <Layers className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">42 Densite Profesyonel Araç İzolasyonu</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">42 Densite Panelvan Araç Kaplamaları</h3>
             <p className="text-slate-600 mb-6 leading-relaxed">
-              Isı kaybını sıfıra indiren yüksek yoğunluklu poliüretan köpük uygulamalarımızla araç içini gıda ve ilaç taşımacılığına uygun, sızdırmaz bir soğuk odaya dönüştürüyoruz.
+              Isı kaybını sıfıra indiren yüksek yoğunluklu panelvan araç kaplamaları ile her marka aracı gıda, ilaç ve veteriner araçları standartlarına uygun, tam sızdırmaz bir soğuk odaya dönüştürüyoruz.
             </p>
             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
                   <strong className="text-slate-900 text-sm block mb-0.5">42 Densite Poliüretan Köpük</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Yüksek yoğunluklu dolgu sayesinde ısı köprülerini önler, soğutucu ünitenin ömrünü uzatır.</span>
+                  <span className="text-sm text-slate-600 leading-relaxed">Yüksek yoğunluklu dolgu sayesinde ısı köprülerini tamamen keser, soğutucu ünitenin çalışma yükünü ve enerji tüketimini düşürür.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
                   <strong className="text-slate-900 text-sm block mb-0.5">-18 °C İçin Çift Kat 8 cm Kalınlık</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Derin dondurucu araçlarda çift katman ile 8 cm köpük kalınlığına ulaşarak kusursuz sıcaklık koruması sağlar.</span>
+                  <span className="text-sm text-slate-600 leading-relaxed">Derin dondurucu araçlarda çift katman ile 8 cm köpük kalınlığına ulaşarak en sıcak iklimlerde bile kusursuz sıcaklık koruması sağlar.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
                   <strong className="text-slate-900 text-sm block mb-0.5">Hijyenik Monoblok & Paslanmaz Yüzey</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Kolay yıkanabilir antibakteriyel fiber veya 304 kalite saf paslanmaz çelik kaplama alternatifleri.</span>
+                  <span className="text-sm text-slate-600 leading-relaxed">Kolay yıkanabilir antibakteriyel yüzeyler veya ağır hizmete uygun 304 kalite saf paslanmaz çelik kaplama alternatifleri.</span>
                 </div>
               </li>
             </ul>
@@ -1943,30 +2014,30 @@ function ServicesPage() {
             <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
               <Truck className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">Sağlam Frigorifik Kasa & Özel Üstyapı</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">Polyester Kasa, Kamyon Kasası & Özel Dönüşüm</h3>
             <p className="text-slate-600 mb-6 leading-relaxed">
-              Zorlu yol ve yükleme koşullarına dayanacak şekilde ürettiğimiz sağlam frigorifik kasalarla hem hafif ticari hem ağır vasıta araçlar için özel çözümler geliştiriyoruz.
+              Zorlu saha koşullarına dayanıklı sağlam kasa mühendisliğimizle; kamyon kasası imalatından Ateco kasa, Iveco kasa ve özel sektör araç dönüşümlerine kadar anahtar teslim üstyapı çözümleri sunuyoruz.
             </p>
             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
-                  <strong className="text-slate-900 text-sm block mb-0.5">Yüksek Mukavemetli Sağlam Kasalar</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Darbe ve titreşime dirençli, su sızdırmaz ve uzun yıllar formunu koruyan güçlendirilmiş kasa gövdesi.</span>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Polyester Kasa, Ateco Kasa & Iveco Kasa İmalatı</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Ateco kasa ve Iveco kasa başta olmak üzere tüm kamyon kasası ihtiyaçları için darbelere dirençli, su sızdırmaz ve uzun ömürlü monoblok polyester kasa üretimi.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
-                  <strong className="text-slate-900 text-sm block mb-0.5">Et Kancalı Araç Dönüşümleri</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Ağır karkas et taşımacılığına uygun paslanmaz çelik ray sistemleri ve güvenli askı donanımı.</span>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Et Kancalı & Veteriner Araçları Dönüşümü</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Ağır karkas taşımacılığına uygun paslanmaz raylı et kancalı araçlar ile klinik ve saha standartlarına göre tasarlanan donanımlı veteriner araçları.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
-                  <strong className="text-slate-900 text-sm block mb-0.5">Sektöre Özel İç Donanım</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Balıkçı araçlarına özel giderli alüminyum zemin, süt-şarküteri rafları ve özel bölme çözümleri.</span>
+                  <strong className="text-slate-900 text-sm block mb-0.5">Sektöre Özel İç Donanım & Filo Çözümleri</strong>
+                  <span className="text-sm text-slate-600 leading-relaxed">Balıkçı araçlarına giderli alüminyum zemin, süt-şarküteri rafları ve Maxus Deliver sanal market filolarına özel bölme sistemleri.</span>
                 </div>
               </li>
             </ul>
@@ -1978,14 +2049,14 @@ function ServicesPage() {
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-snug">B2B Paket Satış & Teknik Destek</h3>
             <p className="text-slate-600 mb-6 leading-relaxed">
-              Soğutma servisleri, oto elektrik bayileri ve üstyapı firmaları için hazırladığımız özel tedarik paketleriyle sürdürülebilir ve kârlı bir iş ortaklığı sunuyoruz.
+              Üstyapı firmaları, kasa üreticileri, oto elektrik bayileri ve soğutma servisleri için hazırladığımız özel tedarik paketleriyle sürdürülebilir ve yüksek kâr marjlı bir iş ortaklığı sunuyoruz.
             </p>
             <ul className="space-y-4 mt-auto border-t border-slate-100 pt-6">
               <li className="flex items-start gap-3.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4"/></div>
                 <div>
                   <strong className="text-slate-900 text-sm block mb-0.5">Üreticiden Doğrudan Tedarik</strong>
-                  <span className="text-sm text-slate-600 leading-relaxed">Doğrudan fabrikadan alım modeliyle rekabetçi maliyet ve yüksek bayi kâr marjı avantajı.</span>
+                  <span className="text-sm text-slate-600 leading-relaxed">Doğrudan fabrikadan alım modeliyle rekabetçi maliyet ve güçlü bayi kâr marjı avantajı.</span>
                 </div>
               </li>
               <li className="flex items-start gap-3.5">
@@ -2011,7 +2082,7 @@ function ServicesPage() {
           <div className="relative z-10 px-8">
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6">Uygulama Alanlarımızı Keşfedin</h2>
             <p className="text-slate-500 max-w-2xl mx-auto mb-10 text-lg">
-              Ford, Volkswagen, Mercedes, Renault, FIAT, Opel ve daha birçok marka araç için uyguladığımız profesyonel izolasyon, kasa ve soğutucu çözümlerimizi galerimizde inceleyebilirsiniz.
+              Ford, Volkswagen, Mercedes, Maxus Deliver, Iveco, Renault, FIAT, Opel ve daha birçok marka araç için uyguladığımız profesyonel panelvan kaplama, polyester kasa ve elektrikli soğutucu çözümlerimizi galerimizde inceleyebilirsiniz.
             </p>
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -2199,6 +2270,10 @@ function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = 'Sıkça Sorulan Sorular | Gensa Frigo';
+  }, []);
+
   // JSON-LD Schema for GEO/SEO
   const faqSchema = {
     "@context": "https://schema.org",
@@ -2344,7 +2419,10 @@ function ProductDetailPage({ onRequestQuote }: { onRequestQuote: (id: string) =>
   useEffect(() => {
     window.scrollTo(0, 0);
     setLightboxIndex(null);
-  }, [id]);
+    if (product) {
+      document.title = `${product.model} | Gensa Frigo`;
+    }
+  }, [id, product]);
 
   if (!product) {
     return (
@@ -2363,8 +2441,9 @@ function ProductDetailPage({ onRequestQuote }: { onRequestQuote: (id: string) =>
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.model,
+    "category": `${product.mainCategory} - ${product.category}`,
     "image": product.image,
-    "description": product.shortDesc,
+    "description": `${product.shortDesc} Uyumlu araç ve kasa tipleri: ${[...(product.vehicles || []), ...(product.searchKeywords || [])].join(', ')}.`,
     "brand": {
       "@type": "Brand",
       "name": "Gensa Frigo"
